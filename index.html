@@ -767,11 +767,10 @@ const PunyCore = (() => {
   const API_URL = "https://script.google.com/macros/s/AKfycbzfjZIuZcs-Y2s8pZZBiG9RP_S6ZiRlhfItTbt-K0bPCmrCUyNuJNVHy7ePXUcbiunbAg/exec";
   const USER_KEY = (() => {
     if (!API_URL) return null;
+    // URL の合言葉を優先。端末に覚えるのは、サーバーで合言葉が通ってから（connectApi）
     const fromUrl = new URLSearchParams(location.search).get("u");
-    try {
-      if (fromUrl) localStorage.setItem("puny-user-key", fromUrl);
-      return fromUrl || localStorage.getItem("puny-user-key");
-    } catch { return fromUrl; }
+    if (fromUrl) return fromUrl;
+    try { return localStorage.getItem("puny-user-key"); } catch { return null; }
   })();
   const $ = (id) => document.getElementById(id);
   const fmtTime = (ms) => new Date(ms).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
@@ -868,6 +867,7 @@ const PunyCore = (() => {
     }
     try {
       const data = await apiLoad();
+      try { localStorage.setItem("puny-user-key", USER_KEY); } catch {}
       const remote = C.sanitize(data.state);
       const merged = C.merge(state, remote);
       lastRev = data.rev;
